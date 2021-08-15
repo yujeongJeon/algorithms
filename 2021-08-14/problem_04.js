@@ -5,20 +5,17 @@ async function *requestCount (callAPI) {
         data: {result, token}
     }
 
-    const {result: secondResult, token: secondToken} = await callAPI(token)
-
-    yield {
-        request: 'second call',
-        data: {result: secondResult, token: secondToken}
-    }
+    let prevToken = token
 
     while(true) {
-        const {result: overThreeTimesResult, token: overThreeTimesToken} = await callAPI(token)
+        const {result: afterFirstResult, token: afterFirstToken, previous} = await callAPI(prevToken)
+        prevToken = afterFirstToken
         yield {
-            request: 'over three times call',
+            request: 'after first call',
             data: {
-                result: overThreeTimesResult,
-                token: overThreeTimesToken
+                result: afterFirstResult,
+                token: afterFirstToken,
+                previous
             }
         }
     }
@@ -42,10 +39,11 @@ async function solution (callAPI) {
 
 let resultCount = 1
 const callAPI = (token) => new Promise(
-    (resolve) => resolve({
-        result: resultCount++, 
-        token: token || Math.random().toString().slice(2)
-    })
+    (resolve) => 
+        resolve({
+            result: resultCount++, 
+            token: Math.random().toString().slice(2),
+        })
 )
 
 solution(callAPI)
