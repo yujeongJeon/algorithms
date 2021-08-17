@@ -1,21 +1,20 @@
-async function *requestCount (callAPI) {
+async function *requestInOrder (callAPI) {
     const {result, token} = await callAPI()
     yield {
-        request: 'first call',
+        request: `call ${result}`,
         data: {result, token}
     }
 
     let prevToken = token
 
     while(true) {
-        const {result: afterFirstResult, token: afterFirstToken, previous} = await callAPI(prevToken)
+        const {result: afterFirstResult, token: afterFirstToken} = await callAPI(prevToken)
         prevToken = afterFirstToken
         yield {
-            request: 'after first call',
+            request: `call ${afterFirstResult}`,
             data: {
                 result: afterFirstResult,
                 token: afterFirstToken,
-                previous
             }
         }
     }
@@ -25,7 +24,7 @@ let generator
 
 async function solution (callAPI) {
     if (!generator) {
-        generator = requestCount(callAPI)
+        generator = requestInOrder(callAPI)
     }
 
     const {value} = await generator.next()
